@@ -50,9 +50,9 @@ module.exports = class Product {
       const product = products.find((p) => p.id === id);
       const updatedProducts = products.filter((prod) => prod.id !== id);
       fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
-        if (err) {
-          console.log(err);
-        } else Cart.deleteProduct(id, product.price);
+        if (!err) {
+          Cart.deleteProduct(id, product.price);
+        }
       });
     });
   }
