@@ -13,15 +13,13 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-
-  // Assuming the Product model is correctly imported
   Product.create({
     title: title,
     price: +price,
     imageUrl: imageUrl,
     description: description,
   })
-    .then((result) => console.log(result))
+    .then((result) => console.log("product created"))
     .catch((err) => console.log(err.message));
 };
 
@@ -31,16 +29,16 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect("/");
   }
   const prodId = req.params.productId;
-  Product.findById(prodId)
-    .then((row) => {
-      if (!row[0]) {
+  Product.findAll({ where: { id: prodId } })
+    .then((product) => {
+      if (!product[0]) {
         res.redirect("/");
       }
       res.render("admin/edit-product", {
         pageTitle: "Edit Product",
         path: "/admin/edit-product",
         editing: editMode,
-        product: row[0][0],
+        product: product[0],
       });
     })
     .catch((err) => console.log(err.message));
@@ -64,10 +62,10 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
-    .then(([rows, fieldData]) => {
+  Product.findAll()
+    .then((products) => {
       res.render("admin/products", {
-        prods: rows,
+        prods: products,
         pageTitle: "Admin Products",
         path: "/admin/products",
       });
