@@ -1,6 +1,6 @@
 const Product = require("../models/product");
 const Cart = require("../models/cart");
-const { where } = require("sequelize");
+const e = require("express");
 
 exports.getProducts = (req, res, next) => {
   Product.findAll()
@@ -44,40 +44,66 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   Cart.getCart((cart) => {
-    Product.fetchAll((products) => {
-      const cartProducts = [];
-      for (product of products) {
-        const cartProdcutData = cart.products.find(
-          (prod) => prod.id === product.id
-        );
-        if (cartProdcutData) {
-          cartProducts.push({ productData: product, qty: cartProdcutData.qty });
+    Product.findAll()
+      .then((products) => {
+        const cartProducts = [];
+        for (product of products) {
+          const cartProdcutData = cart.products.find(
+            (prod) => Number(prod.id) === product.id
+          );
+          if (cartProdcutData) {
+            cartProducts.push({
+              productData: product,
+              qty: cartProdcutData.qty,
+            });
+          }
         }
-      }
-      res.render("shop/cart", {
-        path: "/cart",
-        pageTitle: "Your Cart",
-        products: cartProducts,
-      });
-    });
+        res.render("shop/cart", {
+          path: "/cart",
+          pageTitle: "Your Cart",
+          products: cartProducts,
+        });
+      })
+      .catch((err) => console.log(err.message));
+
+    // Product.fetchAll((products) => {
+    //   const cartProducts = [];
+    //   for (product of products) {
+    //     const cartProdcutData = cart.products.find(
+    //       (prod) => prod.id === product.id
+    //     );
+    //     if (cartProdcutData) {
+    //       cartProducts.push({ productData: product, qty: cartProdcutData.qty });
+    //     }
+    //   }
+    //   res.render("shop/cart", {
+    //     path: "/cart",
+    //     pageTitle: "Your Cart",
+    //     products: cartProducts,
+    //   });
+    // });
   });
 };
 
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.findById(prodId, (product) => {
-    Cart.addProduct(prodId, product.price);
-  });
-  res.redirect("/cart");
+  Product.findByPk(prodId)
+    .then((product) => {
+      Cart.addProduct(prodId, product.price);
+      res.redirect("/cart");
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
   // console.log(prodId);
-  Product.findById(prodId, (product) => {
-    Cart.deleteProduct(prodId, product.price);
-    res.redirect("/cart");
-  });
+  Product.findByPk(prodId)
+    .then((product) => {
+      Cart.deleteProduct(prodId, product.price);
+      res.redirect("/cart");
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
